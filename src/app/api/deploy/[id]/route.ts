@@ -12,5 +12,5 @@ export async function GET(
     return NextResponse.json({ error: "Deploy not found or expired" }, { status: 404 });
   }
 
-  return NextResponse.json(deploy);
+  return NextResponse.json({ html: deploy.html, expiresAt: deploy.expiresAt.getTime() });
 }

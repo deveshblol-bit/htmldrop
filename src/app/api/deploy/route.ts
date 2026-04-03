@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { storeDeploy } from "@/lib/store";
+import { saveDeploy } from "@/lib/store";
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +17,15 @@ export async function POST(req: Request) {
     }
 
     const id = nanoid(8);
-    const { expiresAt } = await storeDeploy(id, html, expiry);
+    const expiryMap: Record<string, number> = {
+      "15m": 15 * 60 * 1000,
+      "1h": 60 * 60 * 1000,
+      "24h": 24 * 60 * 60 * 1000,
+      "7d": 7 * 24 * 60 * 60 * 1000,
+    };
+    const expiryMs = expiryMap[expiry] || expiryMap["15m"];
+    await saveDeploy(id, html, expiryMs);
+    const expiresAt = new Date(Date.now() + expiryMs).toISOString();
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
       || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null)
